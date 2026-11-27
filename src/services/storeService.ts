@@ -320,6 +320,7 @@ export const createOrder = async (payload: CheckoutPayload): Promise<{ success: 
       });
 
       if (error) {
+        console.error('Supabase atomic RPC error details:', error);
         throw new Error(error.message);
       }
 
@@ -332,8 +333,10 @@ export const createOrder = async (payload: CheckoutPayload): Promise<{ success: 
         };
       }
     } catch (err: unknown) {
-      console.warn('Supabase atomic RPC failed or offline, executing fallback logic', err);
-      // fallback to resilient local handler below
+      console.error('Supabase atomic RPC failed:', err);
+      // Lempar error asli ke UI agar admin/user tahu persis penyebabnya dan tidak diam-diam fallback offline
+      const message = err instanceof Error ? err.message : 'Gagal memproses pesanan ke database Supabase';
+      throw new Error(`Database Error: ${message}`);
     }
   }
 
